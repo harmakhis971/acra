@@ -863,15 +863,9 @@ class BaseTestCase(PrometheusMixin, unittest.TestCase):
         return process
 
     def get_connector_tls_params(self):
-        return [
-            '--acraserver_tls_transport_enable',
-            '--tls_acraserver_sni=acraserver',
-        ]
-
-    def get_connector_tls_params_dict(self):
         return {
-            '--acraserver_tls_transport_enable': None,
-            '--tls_acraserver_sni': 'acraserver',
+            'acraserver_tls_transport_enable': True,
+            'tls_acraserver_sni': 'acraserver',
         }
 
     def get_connector_prometheus_port(self, port):
@@ -921,7 +915,7 @@ class BaseTestCase(PrometheusMixin, unittest.TestCase):
         if zone_mode:
             args['http_api_enable'] = True
         if self.CONNECTOR_TLS_TRANSPORT:
-            args.update(self.get_connector_tls_params_dict())
+            args.update(self.get_connector_tls_params())
         if extra_options:
             args.update(extra_options)
 
@@ -3009,7 +3003,7 @@ class TLSBetweenConnectorAndServerMixin(object):
     def get_connector_tls_params(self):
         base_params = super(TLSBetweenConnectorAndServerMixin, self).get_connector_tls_params()
         # client side need CA cert to verify server's
-        base_params.append('--tls_ca={}'.format(TEST_TLS_CA))
+        base_params.update('tls_ca', TEST_TLS_CA)
         return base_params
 
     def setUp(self):
