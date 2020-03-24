@@ -909,31 +909,23 @@ class BaseTestCase(PrometheusMixin, unittest.TestCase):
             'logging_format': 'cef',
         }
         if self.LOG_METRICS:
-            port = self.get_connector_prometheus_port(connector_port)
-            conn = self.get_prometheus_address(port)
-            args['incoming_connection_prometheus_metrics_string'] = conn
+            args['incoming_connection_prometheus_metrics_string'] = \
+                self.get_prometheus_address(
+                    self.get_connector_prometheus_port(connector_port))
         if TEST_WITH_TRACING:
-            args['tracing_log_enable'] = None
+            args['tracing_log_enable'] = True
             if TEST_TRACE_TO_JAEGER:
-                args['tracing_jaeger_enable'] = None
+                args['tracing_jaeger_enable'] = True
         if self.DEBUG_LOG:
-            args['-d'] = 'true'
+            args['d'] = True
         if zone_mode:
-            args['http_api_enable'] = 'true'
+            args['http_api_enable'] = True
         if self.CONNECTOR_TLS_TRANSPORT:
             args.update(self.get_connector_tls_params_dict())
         if extra_options:
             args.update(extra_options)
 
-        def format_arg(k, v):
-            if v is not None:
-                if not k.startswith('-'):
-                    k = '--' + k
-                return '{}={}'.format(k, v)
-            else:
-                return '{}'.format(k)
-
-        cli_args = sorted([format_arg(k, v) for k, v in args.items()])
+        cli_args = sorted(['--{}={}'.format(k, v) for k, v in args.items()])
         print('connector args: {}'.format(' '.join(cli_args)))
 
         process = self.fork(lambda: subprocess.Popen(['./acra-connector'] + cli_args))
